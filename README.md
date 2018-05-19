@@ -2,28 +2,24 @@
 
 一个纯Java纯TCP协议的即时通讯程序。HIM即`Here I am` or `Here Instant Message`，来自于我的【高级程序设计语言课程设计】课程，对服务端和客户端通信部分开源。
 
- ![version](https://img.shields.io/badge/version-v1.0-blue.svg)![jdk](https://img.shields.io/badge/java-1.8.0-green.svg)![mysql](https://img.shields.io/badge/mysql-v5.7-brightgreen.svg)[![licence](https://img.shields.io/badge/licence-Apache2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)![netIO](https://img.shields.io/badge/netIO-TCP/IP-green.svg)
+ ![version](https://img.shields.io/badge/version-v1.0-blue.svg)  ![jdk](https://img.shields.io/badge/java-1.8.0-green.svg) ![mysql](https://img.shields.io/badge/mysql-v5.7-brightgreen.svg) [![licence](https://img.shields.io/badge/licence-Apache2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) ![netIO](https://img.shields.io/badge/netIO-TCP/IP-green.svg)
 
 
 
 ## 目录
 
 * [课设要求](#课设要求)
-
 * [服务端架设](#服务端架设)
 
   * Windows
   * Linux
-
 * [项目介绍](#项目介绍)
 
   * 目录结构
   * 服务端原理简单阐述
-
 * [开发历程](#开发历程)
 
   * 前言
-
   * 需求分析
   * 数据库建模
   * 数据访问层设计
@@ -216,22 +212,65 @@
    * 很长一段时间我是在不断学习高级技术和推翻自己先前的想法。
    * 对于代码中魔法值肆虐、包结构过于精简、类名过于"神奇"等现象，请给我提Issue。如果能教一下我该怎么修正错误的习惯，感激不尽！
    * 这一章虽说是"开发历程"，其实也是摘抄我实验报告的部分罢了，或所尽口舌之快而不得其髓。
-   * 另外，客户端是我的小伙伴写的，所以我无法开源，将程序Demo上传到release
+   * 另外，客户端是我的小伙伴写的，所以我无法开源，但已经将程序Demo上传到[release](https://github.com/zhangt2333/HIM/releases)
    * 还有，Gayhub作为最大的~~同性交友平台~~，欢迎来邮件~
 
 
 
  * ####  需求分析
 
+```
+	本次课程设计立足于市场上热门的即时通讯软件QQ为原型，要求设计了一套自己的聊天软件模式，实现基本的聊天、数据传输功能，并提供了很大的发散空间，可以让我们添加更多的个性设计。
+
+	于此，需求分析方面很简单：
+
+	客户端，用户的使用部分，提供主要的界面和服务请求，如：登录界面、注册界面、信息查看修改界面、主窗体界面、聊天界面等。通过网络发送请求到服务端，并接受服务端反馈，处理、显示结果。
+
+	服务端，提供服务的开启、关闭功能，负责处理核心的业务逻辑，负责连接数据库，保存和读取数据。通过网络接收客户端发送的请求，间接操作数据库，反馈结果于客户端，并用日志记录客户端请求。
+
+	业务方面，提供业务有：注册、登录、登出、查询个人信息、查询分组列表、查询好友列表、昵称查询用户、ID查询用户、批量查询用户、更新好友列表、更新个人信息、更新头像、更改密码、上传文件、下载文件、上传头像、下载头像、发送消息（个人消息、群消息、图片、文件、“你画我猜”请求）、查询未读消息、群号查询群、群名查询群、查询用户所属群、查询群成员列表、上传群文件、查询群文件、创建群、加入群、退出群、更新群消息、更新个人的群名片、发表说说、查询好友说说。
+```
 
  * #### [数据库建模](https://github.com/zhangt2333/HIM/tree/master/src/com/HIM/server/Db_Init.java)
 
+```
+1.UserInfo(UserID,Passwd,Sign,PhotoIndex,Nickname,Sex,Birthday,Constellation,ApplyDate)
+2.ChatRecord(Index,SendTime,Sender,Type,Receiver,QunID,Content,Fonttype,Fontsize,Fontcolor,Readed)
+3.FileInfo(InfoIndex,Type,Size,MD5,Name,Path)
+4.LoginInfo(InfoIndex,UserID,IP,Port,LoginTime,Status)
+5.MoodRecord(Index,Poster,PostTime,Content)
+6.PhotoInfo(InfoIndex,MD5,Path)
+7.QunFile(Index,QunID,Uploader,UploadTime,FileIndex)
+8.QunInfo(QunID,QunName,PhotoIndex,CreateTime)
+9.SubGroup(GroupIndex,UserID,GroupName)
+10.UserEmoticon(Index,Fileindex,UserID)
+11.UserFriend(UserID,FriendID,GroupIndex,Alias)
+12.UserQun(Relation,UserID,QunID,Alias,JoinTime)
+```
 
  * #### 数据访问层设计
 
+```
+	数据访问层，即将数据库写出读出的相关及其支持方法归分到相应的数据库操作类，在这里，主要是Db_Operate类和Db_Init类，里面提供了类似于register、login、addFriend等写入数据的静态方法，和queryUser、queryQuninfo等查询数据的静态方法。
+	
+    此外，数据库连接的池化管理对数据访问的效率和系统的稳定性有些极大的作用。引入连接池，即对于一个服务端，初始化之时创建初始数量的Connection，每次请求时就直接从连接池拿取，用完放回，拿取之前，连接池对拿取前进行Connection可效性检验，失效或当前无可用连接则新建连接后返回。 
+    
+    JDK没有提供连接池。我使用了Java比较主流的四大连接池之一C3P0连接池，一个开源的JDBC连接池。使用起来还是蛮简单的。只要封装一个方法，方法里面对配置好的ComboPooledDataSource使用.getConnectons()方法就行了。
+```
 
  * #### [缓存数据设计](https://github.com/zhangt2333/HIM/tree/master/src/com/HIM/common/)
 
+```
+	在客户端与客户端通讯的时候，不同功能传输的数据量及类型不一，考虑到数据的存储和项目的可维护性，设计了一些Bean类，在网络IO的时候就可以直接传输对象。设计的Bean类有如下：
+	Bean_userinfo、Bean_friendinfo、Bean_subgroup、Bean_quninfo、Bean_fileinfo、Bean_message，类之用途如其名。
+```
 
  * #### 通讯协议层设计
 
+```
+	计算机之间数据传输的常用通讯协议有两种，即TCP和UDP。TCP是可靠的面向连接的通信协议，UDP是不可靠的面向无连接的通信协议。
+	
+	在服务端与客户端通讯中，由于多是处理像登录、加好友、查询群等交互的业务，故采用了TCP协议，长连接维护数据流和对象流，从而实现一次连接，随时业务。
+	
+    在客户端与客户端的通讯中，起初在实现聊天功能是时候设想采用UDP协议，客户端从服务端拿到好友们IP和UDP端口，服务端起到一个维护在线用户信息的作用，聊天交给客户端们自己实现。但其网络条件较差时常出现掉包现象和无固定外网ip情况下将无法通讯情况，于是退而继续采用TCP协议，利用”转发”，实现客户端与客户端的连接。
+```
