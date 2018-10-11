@@ -4,7 +4,10 @@
 
  ![version](https://img.shields.io/badge/version-v1.0-blue.svg)  ![jdk](https://img.shields.io/badge/java-1.8.0-green.svg) ![mysql](https://img.shields.io/badge/mysql-v5.7-brightgreen.svg) [![licence](https://img.shields.io/badge/licence-Apache2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) ![netIO](https://img.shields.io/badge/netIO-TCP/IP-green.svg)
 
+#### 作者5个月后的感慨
+起初在刚学完Java的时候这个项目作为一个练手项目，制作一个即时通讯软件。有着QQ作为范例，在需求分析上几乎没有难度，当时作为一个新手，写和架构这个项目前后推翻了好多次，代码重构了很多次，但也是Java进步最快的时候，当时没有学什么框架，纯自己琢磨，然后先后看了一些架构很规范的项目又把自己的推翻了重写。反反复复。从而在今天来看，这个项目的架构多多少少不差了，但数据库方面还是很差劲的，当时没有学过系统的课程，学会增删改查就上了，连联合查询之类的都不会，希望有空可以改过来；前端也是，是东哥写的，我希望自己可以写一个前端，但应该会是Android端了，有空放下web去学安卓的时候可以作为练手项目；还有就是在业务处理上有很多必要的冗余代码，我不知道这是不是就是码农之所以称为码农。
 
+总之这个项目能看的就是架构和思想了，数据库、并发、锁等方面待有空吧再写一个吧！
 
 ## 目录
 
